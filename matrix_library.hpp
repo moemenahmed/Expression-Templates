@@ -211,7 +211,7 @@ public:
 	// assignment operator for same type 
 	ExpMatrix& operator= (ExpMatrix const& M) 
 	{ 
-		assert(get_rows()==M.get_rows()  && get_cols() == M.get_cols());
+		assert(get_rows()== M.get_rows()  && get_cols() == M.get_cols());
 		for (size_t r = 0; r < M.get_rows(); r++)
 		{
 			for (size_t c = 0; c < M.get_cols(); c++)
@@ -311,4 +311,24 @@ ExpMatrix<T, Operation<T, Scalar<T>, R2> > operator* (ExpMatrix<T, R2> const& b,
 {
 	auto f = [](T x, T y) {return x * y; };
 	return ExpMatrix<T, Operation<T, Scalar<T>, R2> >(Operation<T, Scalar<T>, R2>(Scalar<T>(a), b.object(), f));
+}
+// matrix multiplication
+template <typename T>
+ExpMatrix<T> operator* (ExpMatrix<T> const& a, ExpMatrix<T> const& b)
+{
+	assert(a.get_cols()==b.get_rows());
+	ExpMatrix<T> output(a.get_rows(), b.get_cols(),0);
+	for (size_t i = 0; i < output.get_rows(); i++)
+	{
+		for (size_t j = 0; j < output.get_cols(); j++)
+		{
+			for (size_t k = 0; k < a.get_rows();k++)
+			{
+				output(i, j) += a(i, k)*b(k, j);
+			}
+			
+		}
+	}
+	return output;
+	
 }
