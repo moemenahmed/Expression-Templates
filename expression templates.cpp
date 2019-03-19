@@ -16,7 +16,9 @@ int main() {
 	//std::cout << A.get_cols();
 	//std::vector<int>v= M[0];
 	//double x = N(2,0);
-	D = A + B + C;
+	//D = A - B + C;
+	//D = A*c;
+	B -= A;
 	std::complex y = D(0,0);
 	
 	return 0;

@@ -1,5 +1,6 @@
 #include <cassert>
 #include <vector>
+#include <functional>
 // Scalar class :  class for objects that represent scalars
 template <typename T>
 class Scalar
@@ -12,7 +13,7 @@ public:
 	{
 	}
 	// for index operations the scalar is the value of each element 
-	T operator[] (size_t) const
+	T operator() (size_t,size_t) const
 	{
 		return s;
 	}
@@ -49,22 +50,24 @@ typedef Scalar<T> ExprRef; // type to refer to is ordinary value
 
 // expression class templates
 
-// expression template class for objects that represent the addition of two operands
+// expression template class for objects that represent the Operationition of two operands
 template <typename T, typename OP1, typename OP2> 
-class Add
+class Operation
 {
 private:
 	typename Traits<OP1>::ExprRef op1; // first operand 
-	typename Traits<OP2>::ExprRef op2; // second operand 
+	typename Traits<OP2>::ExprRef op2; // second operand
+	std::function <T(T, T)>operation;
 public:
 	// constructor initializes references to operands
-	Add (OP1 const& a, OP2 const& b) : op1(a), op2(b)
+	Operation (OP1 const& a, OP2 const& b, const std::function<T(T, T)>& _operation) : op1(a), op2(b)
 	{
+		operation = _operation;
 	}
 	// compute sum when value requested 
 	T operator() (const size_t r,const size_t c) const 
 	{ 
-		return op1(r,c) + op2(r,c);
+		return operation(op1(r,c) , op2(r,c));
 	}
 	// size is maximum size 
 	size_t get_rows() const 
@@ -178,7 +181,7 @@ public:
 };
 
 //ExpMatrix class
-template <typename T, typename obj = Matrix<T> > 
+template <typename T, typename obj = Matrix<T> > //obj type is either Matrix or Operation
 class ExpMatrix
 {
 private:
@@ -258,13 +261,54 @@ public:
 		return exp_obj; 
 	}
 
+	template <typename T>
+	ExpMatrix<T>& operator += (const ExpMatrix<T> & a)
+	{
+		ExpMatrix<T> output (get_rows(), get_cols());
+		output = (*this) + a;
+		(*this) = output;
+		return (*this);
+	}
+	template <typename T>
+	ExpMatrix<T>& operator -= (const ExpMatrix<T> & a)
+	{
+		ExpMatrix<T> output(get_rows(), get_cols());
+		output = (*this) - a;
+		(*this) = output;
+		return (*this);
+	}
+
 };
 
 //operators
-// addition of two Arrays
+// addition of two matrix
 template <typename T, typename R1, typename R2> 
-ExpMatrix<T, Add<T, R1, R2> > operator+ (ExpMatrix<T, R1> const& a, ExpMatrix<T, R2> const& b) 
+ExpMatrix<T, Operation<T, R1, R2> > operator+ (ExpMatrix<T, R1> const& a, ExpMatrix<T, R2> const& b) 
 {
-	return ExpMatrix<T, Add<T, R1, R2> >(Add<T, R1, R2>(a.object(), b.object()));
+	auto f = [](T x, T y) {return x + y; };
+	return ExpMatrix<T, Operation<T, R1, R2> >(Operation<T, R1, R2>(a.object(), b.object(),f ));
+}
+// subtraction of two matrix
+template <typename T, typename R1, typename R2>
+ExpMatrix<T, Operation<T, R1, R2> > operator- (ExpMatrix<T, R1> const& a, ExpMatrix<T, R2> const& b)
+{
+	auto f = [](T x, T y) {return x - y; };
+	return ExpMatrix<T, Operation<T, R1, R2> >(Operation<T, R1, R2>(a.object(), b.object(), f));
 }
 	
+
+
+// scalar multiplication
+template <typename T, typename R2>
+ExpMatrix<T, Operation<T, Scalar<T>, R2> > operator* (const T& a, ExpMatrix<T, R2> const& b)
+{
+	auto f = [](T x, T y) {return x * y; };
+	return ExpMatrix<T, Operation<T, Scalar<T>, R2> >(Operation<T, Scalar<T>, R2>(Scalar<T>(a), b.object(), f));
+}
+// scalar multiplication
+template <typename T, typename R2>
+ExpMatrix<T, Operation<T, Scalar<T>, R2> > operator* (ExpMatrix<T, R2> const& b, const T& a)
+{
+	auto f = [](T x, T y) {return x * y; };
+	return ExpMatrix<T, Operation<T, Scalar<T>, R2> >(Operation<T, Scalar<T>, R2>(Scalar<T>(a), b.object(), f));
+}
