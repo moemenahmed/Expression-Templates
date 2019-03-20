@@ -1,7 +1,17 @@
+/* Matrix Library : a library that deals with matrices by expression templates , performs 
+operations like elementwise addition, subtraction, scalar multiplication and 
+matrix multipication operations using operators .
+it also supports different numerical tybes of a matrix like (int, long, float, double, complex,..)
+
+*/
+
 #include <cassert>
 #include <vector>
 #include <functional>
-// Scalar class :  class for objects that represent scalars
+
+/* 
+Scalar class :  class for objects that represent scalars of any type (int , double , complex ,...)
+*/
 template <typename T>
 class Scalar
 {
@@ -17,7 +27,7 @@ public:
 	{
 		return s;
 	}
-	// scalars have zero as 0 rows ,0 cols 
+	// assuming scalars have zero as 0 rows ,0 cols 
 	size_t get_rows() const
 	{
 		return 0;
@@ -48,9 +58,14 @@ public:
 typedef Scalar<T> ExprRef; // type to refer to is ordinary value 
 };
 
-// expression class templates
+/*****************************expression class template***************************************/
 
-// expression template class for objects that represent the Operationition of two operands
+/* 
+Operation : expression template class for objects that represent the operation 
+of two operands. 
+The operands can be matrix or scalar or Operation again (nested expressions).
+The Operation class is used for both addition and multiplication using generic lambdas.
+*/
 template <typename T, typename OP1, typename OP2> 
 class Operation
 {
@@ -85,7 +100,11 @@ public:
 
 };
 
-//Matrix class
+/*******************************************Matrix class***************************************/
+/*
+Matrix : a simple matrix class without the use of expression templates.
+It is used for the next main class .
+*/
 template <typename T> 
 class Matrix
 {
@@ -178,9 +197,29 @@ public:
 		return matrix[r][c];
 	}
 
+	void print_matrix()
+	{
+		std::cout << std::endl;
+		for (size_t r = 0; r < (*this).get_rows(); r++)
+		{
+			if (r != 0)std::cout << std::endl;
+			for (size_t c = 0; c < (*this).get_cols(); c++)
+			{
+				std::cout << (*this)(r, c);
+				if (c != (*this).get_cols() - 1)std::cout << " , ";
+			}
+
+		}
+		std::cout << std::endl;
+	}
 };
 
-//ExpMatrix class
+/**************************************ExpMatrix class***************************************/
+/*
+ExpMatrix : is the main class , it can be a simple matrix or an operation that contains another
+matrices or another operations.
+The user should define a matrix with the ExpMatrix class.
+*/
 template <typename T, typename obj = Matrix<T> > //obj type is either Matrix or Operation
 class ExpMatrix
 {
@@ -261,6 +300,7 @@ public:
 		return exp_obj; 
 	}
 
+	// operator +=
 	template <typename T>
 	ExpMatrix<T>& operator += (const ExpMatrix<T> & a)
 	{
@@ -269,6 +309,7 @@ public:
 		(*this) = output;
 		return (*this);
 	}
+	// operator -=
 	template <typename T>
 	ExpMatrix<T>& operator -= (const ExpMatrix<T> & a)
 	{
@@ -277,18 +318,21 @@ public:
 		(*this) = output;
 		return (*this);
 	}
-
+	void print_matrix()
+	{
+		exp_obj.print_matrix();
+	}
 };
 
-//operators
-// addition of two matrix
+/******************************************operators********************************************/
+// addition of two matrices
 template <typename T, typename R1, typename R2> 
 ExpMatrix<T, Operation<T, R1, R2> > operator+ (ExpMatrix<T, R1> const& a, ExpMatrix<T, R2> const& b) 
 {
 	auto f = [](T x, T y) {return x + y; };
 	return ExpMatrix<T, Operation<T, R1, R2> >(Operation<T, R1, R2>(a.object(), b.object(),f ));
 }
-// subtraction of two matrix
+// subtraction of two matrices
 template <typename T, typename R1, typename R2>
 ExpMatrix<T, Operation<T, R1, R2> > operator- (ExpMatrix<T, R1> const& a, ExpMatrix<T, R2> const& b)
 {
@@ -298,14 +342,14 @@ ExpMatrix<T, Operation<T, R1, R2> > operator- (ExpMatrix<T, R1> const& a, ExpMat
 	
 
 
-// scalar multiplication
+// scalar multiplication ( scalar * matrix)
 template <typename T, typename R2>
 ExpMatrix<T, Operation<T, Scalar<T>, R2> > operator* (const T& a, ExpMatrix<T, R2> const& b)
 {
 	auto f = [](T x, T y) {return x * y; };
 	return ExpMatrix<T, Operation<T, Scalar<T>, R2> >(Operation<T, Scalar<T>, R2>(Scalar<T>(a), b.object(), f));
 }
-// scalar multiplication
+// scalar multiplication ( matrix * scalar)
 template <typename T, typename R2>
 ExpMatrix<T, Operation<T, Scalar<T>, R2> > operator* (ExpMatrix<T, R2> const& b, const T& a)
 {
@@ -332,3 +376,4 @@ ExpMatrix<T> operator* (ExpMatrix<T> const& a, ExpMatrix<T> const& b)
 	return output;
 	
 }
+
