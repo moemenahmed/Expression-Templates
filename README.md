@@ -13,11 +13,11 @@
 ### declare a new matrix of int type
 ```
 // 1000x1000 matrix with all elements equal 4
-ExpMatrix<int> A(1000, 1000, 4);
+Matrix<int> A(1000, 1000, 4);
 ```
 ### make operations ,then print the matrix
 ```
-ExpMatrix<int> B(1000, 1000, 2);
+Matrix<int> B(1000, 1000, 2);
 A+=B;
 A.print_matrix();
 ```
