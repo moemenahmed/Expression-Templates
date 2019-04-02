@@ -1,4 +1,4 @@
-# Matrix Library implemeted with expression templates
+# Matrix Library implemented with expression templates
 - **The Library deals with large size matrices of all numerical types (int,short,double,complex,...)**
 
 - **using expression templates increases performance of operating on multiple matrices at the same time , and also makes the program
